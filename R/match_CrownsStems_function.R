@@ -1,15 +1,21 @@
 #' Match crown projection polygons with tree stem positions
 #'
-#' The function links remote sensing derived crown projection polygons with inventory derived tree stems.
-#' The algorithm sorts all polygons by decreasing area size. Then, starting with the largest crown it checks all
-#' stem positions that fall inside the crown projection area and selects the stem with the largest diameter
-#' and assigns it to the crown. The stem is removed from the set of available stems and the same procedure
-#' is conducted for the next smaller crown and further on until the smallest crown.
+#' The function links remote sensing derived crown projection polygons with
+#'   inventory derived tree stems. The algorithm sorts all polygons by
+#'   decreasing area size. Then, starting with the largest crown it checks all
+#'   stem positions that fall inside the crown projection area and selects the
+#'   stem with the largest diameter and assigns it to the crown. The stem is
+#'   removed from the set of available stems and the same procedure is conducted
+#'   for the next smaller crown and further on until the smallest crown.
 #' @param crowns.spdf SpatialPolygonsDataFrame of tree crown projection areas
-#' @param stems.spdf SpatialPointsDataFrame of tree stem foot positions (required columns: X, Y, DBH, Species, TreeID)
+#' @param stems.spdf SpatialPointsDataFrame of tree stem foot positions
+#'   (required columns: X, Y, DBH, Species, TreeID)
 #' @param DBH.min Minimum stem diameter to be considered
-#' @return SpatialPolygonsDataFrame of tree crown projection areas with additional columns containing the attributes of the assigned stem for each crown
-#' @keywords tree crown projection area polygon point stem foot position DBH diameter link match inventory ground truth
+#' @return SpatialPolygonsDataFrame of tree crown projection areas with
+#'   additional columns containing the attributes of the assigned stem for each
+#'   crown
+#' @keywords tree crown projection area polygon point stem foot position DBH
+#'   diameter link match inventory ground truth
 #' @author Nikolai Knapp, nikolai.knapp@ufz.de
 
 match_CrownsStems <- function(crowns.spdf, stems.spdf, DBH.min=0.05){

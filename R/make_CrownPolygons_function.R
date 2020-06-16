@@ -1,19 +1,34 @@
-#' Fit polygon hulls around tree crowns in a clustered point cloud to derive crown projection areas
+#' Fit polygon hulls around tree crowns in a clustered point cloud to derive
+#'   crown projection areas
 #'
-#' The function creates crown projection area polygons from a clustered point cloud of a forest stand.
-#' The input point cloud needs to have a column containing tree ID / cluster ID of each point.
-#' There are different options for the shape of the polygons.
-#' @param pc.dt Point cloud in data.table format containing columns X, Y, Z and ID
-#' @param type Shape of the desired polygons ("convexhull", "ellipse" or "circle")
-#' @param N.min Minimum number of points in a cluster to be considered as a tree crown
-#' @param Ext.min Minimum horizontal extent (in meters, in X- and Y-direction) of a cluster to be considered as a tree crown
-#' @param Ext.max Maximum horizontal extent (in meters, in X- and Y-direction) of a cluster to be considered as a tree crown
+#' The function creates crown projection area polygons from a clustered point
+#'   cloud of a forest stand. The input point cloud needs to have a column
+#'   containing tree ID / cluster ID of each point. There are different options
+#'   for the shape of the polygons.
+#' @param pc.dt Point cloud in data.table format containing columns X, Y, Z and
+#'   ID
+#' @param type Shape of the desired polygons ("convexhull", "ellipse" or
+#'   "circle")
+#' @param N.min Minimum number of points in a cluster to be considered as a tree
+#'   crown
+#' @param Ext.min Minimum horizontal extent (in meters, in X- and Y-direction)
+#'   of a cluster to be considered as a tree crown
+#' @param Ext.max Maximum horizontal extent (in meters, in X- and Y-direction)
+#'   of a cluster to be considered as a tree crown
 #' @param proj4string Projection string of class CRS-class
-#' @return SpatialPolygonsDataFrame with each feature representing the crown projection area of one tree and columns containing various geometric attributes
-#' @keywords tree crown projection area polygons point cloud cluster convex hull ellipse circle perimeter
+#' @return SpatialPolygonsDataFrame with each feature representing the crown
+#'   projection area of one tree and columns containing various geometric
+#'   attributes
+#' @keywords tree crown projection area polygons point cloud cluster convex hull
+#'   ellipse circle perimeter
 #' @author Nikolai Knapp, nikolai.knapp@ufz.de
 
-make_CrownPolygons <- function(pc.dt, type="convexhull", N.min=20, Ext.min=2, Ext.max=50, proj4string=CRS(as.character(NA))){
+make_CrownPolygons <- function(pc.dt,
+                               type="convexhull",
+                               N.min=20,
+                               Ext.min=2,
+                               Ext.max=50,
+                               proj4string=CRS(as.character(NA))){
 
   # type="convexhull"
   # N.min=20
@@ -40,7 +55,9 @@ make_CrownPolygons <- function(pc.dt, type="convexhull", N.min=20, Ext.min=2, Ex
   # Subset only clusters that have a minimum and don't exceed a X- and Y-extent
   sub.dt[, ExtX := max(X, na.rm=T) - min(X, na.rm=T), by=ID]
   sub.dt[, ExtY := max(Y, na.rm=T) - min(Y, na.rm=T), by=ID]
-  sub2.dt <- subset(sub.dt, ExtX >= Ext.min & ExtY >= Ext.min & ExtX <= Ext.max & ExtY <= Ext.max)
+  sub2.dt <- subset(sub.dt,
+    ExtX >= Ext.min & ExtY >= Ext.min & ExtX <= Ext.max & ExtY <= Ext.max
+  )
 
   # Split into a list of point clouds based on crown IDs
   points.list <- split(sub2.dt, f=sub2.dt$ID)
@@ -54,7 +71,11 @@ make_CrownPolygons <- function(pc.dt, type="convexhull", N.min=20, Ext.min=2, Ex
     for(i in 1:length(points.list)){
       my.points.dt <- points.list[[i]]
       # Make a SpatialPointsDataFrame from all points
-      my.points.spdf <- sp::SpatialPointsDataFrame(coords=cbind(X=my.points.dt$X, Y=my.points.dt$Y), data=my.points.dt, proj4string=proj4string)
+      my.points.spdf <- sp::SpatialPointsDataFrame(
+        coords=cbind(X=my.points.dt$X, Y=my.points.dt$Y),
+        data=my.points.dt,
+        proj4string=proj4string
+      )
       # Collect attributes
       my.ID <- my.points.spdf$ID[1]
       my.CentroidX <- mean(my.points.spdf$X, na.rm=T)
@@ -65,7 +86,19 @@ make_CrownPolygons <- function(pc.dt, type="convexhull", N.min=20, Ext.min=2, Ex
       my.CrownLength <- my.TreeH - my.CrownBaseH
       my.NPoints <- my.points.spdf$N[1]
       hull.list[[i]] <- rgeos::gConvexHull(my.points.spdf)
-      hull.list[[i]] <- sp::SpatialPolygonsDataFrame(hull.list[[i]], data=data.frame(ID=my.ID, CentroidX=my.CentroidX, CentroidY=my.CentroidY, CentroidZ=my.CentroidZ, TreeH=my.TreeH, CrownBaseH=my.CrownBaseH, CrownLength=my.CrownLength, NPoints=my.NPoints))
+      hull.list[[i]] <- sp::SpatialPolygonsDataFrame(
+        hull.list[[i]],
+        data=data.frame(
+          ID=my.ID,
+          CentroidX=my.CentroidX,
+          CentroidY=my.CentroidY,
+          CentroidZ=my.CentroidZ,
+          TreeH=my.TreeH,
+          CrownBaseH=my.CrownBaseH,
+          CrownLength=my.CrownLength,
+          NPoints=my.NPoints
+        )
+      )
     }
     # Bind all list elements together in one SpatialPolygonsDataFrame
     hull.spdf <- do.call(raster::bind, hull.list)
@@ -81,7 +114,11 @@ make_CrownPolygons <- function(pc.dt, type="convexhull", N.min=20, Ext.min=2, Ex
     for(i in 1:length(points.list)){
       my.points.dt <- points.list[[i]]
       # Make a SpatialPointsDataFrame from all points
-      my.points.spdf <- sp::SpatialPointsDataFrame(coords=cbind(X=my.points.dt$X, Y=my.points.dt$Y), data=my.points.dt, proj4string=proj4string)
+      my.points.spdf <- sp::SpatialPointsDataFrame(
+        coords=cbind(X=my.points.dt$X, Y=my.points.dt$Y),
+        data=my.points.dt,
+        proj4string=proj4string
+      )
       # Collect attributes
       my.ID <- my.points.spdf$ID[1]
       my.CentroidX <- mean(my.points.spdf$X, na.rm=T)
@@ -113,10 +150,21 @@ make_CrownPolygons <- function(pc.dt, type="convexhull", N.min=20, Ext.min=2, Ex
       # Calculate a mean radius
       mean.radius <- mean(c(major.semi.axis, minor.semi.axis))
       # Collect ellipse attributes
-      ellipse.list[[i]] <- data.frame(ID=my.ID, CentroidX=my.CentroidX, CentroidY=my.CentroidY, CentroidZ=my.CentroidZ, TreeH=my.TreeH,
-                                      CrownBaseH=my.CrownBaseH, CrownLength=my.CrownLength, NPoints=my.NPoints,
-                                      EllipseCenterX=center.point[1], EllipseCenterY=center.point[2], MeanRadius=mean.radius,
-                                      MinorSemiAxis=minor.semi.axis, MajorSemiAxis=major.semi.axis)
+      ellipse.list[[i]] <- data.frame(
+        ID=my.ID,
+        CentroidX=my.CentroidX,
+        CentroidY=my.CentroidY,
+        CentroidZ=my.CentroidZ,
+        TreeH=my.TreeH,
+        CrownBaseH=my.CrownBaseH,
+        CrownLength=my.CrownLength,
+        NPoints=my.NPoints,
+        EllipseCenterX=center.point[1],
+        EllipseCenterY=center.point[2],
+        MeanRadius=mean.radius,
+        MinorSemiAxis=minor.semi.axis,
+        MajorSemiAxis=major.semi.axis
+      )
       # Make a polygon
       p = Polygon(border.points)
       # Add it to the Polygons list
@@ -148,8 +196,8 @@ make_CrownPolygons <- function(pc.dt, type="convexhull", N.min=20, Ext.min=2, Ex
       my.CrownBaseH <- min(my.points.dt$Z, na.rm=T)
       my.CrownLength <- my.TreeH - my.CrownBaseH
       my.NPoints <- my.points.dt$N[1]
-      # Add some very small random noise to the coordinates to avoid errors with duplicate
-      # coordinate combinations in the circumcircle function
+      # Add some very small random noise to the coordinates to avoid errors with
+      # duplicate coordinate combinations in the circumcircle function
       my.points.dt[, X := X + 0.01*(runif(nrow(my.points.dt))-0.5)]
       my.points.dt[, Y := Y + 0.01*(runif(nrow(my.points.dt))-0.5)]
       # Find the smallest circumcircle of the points
@@ -159,12 +207,29 @@ make_CrownPolygons <- function(pc.dt, type="convexhull", N.min=20, Ext.min=2, Ex
       CircleCenterY <- circle$y
       CircleRadius <- circle$radius
       # Make the center a spatial object
-      CircleCenter.sp <- sp::SpatialPoints(coords=data.frame(X=CircleCenterX, Y=CircleCenterY), proj4string=proj4string)
+      CircleCenter.sp <- sp::SpatialPoints(
+        coords=data.frame(X=CircleCenterX, Y=CircleCenterY),
+        proj4string=proj4string
+      )
       # Create the circle polygon
-      ps.list[[i]] <- rgeos::gBuffer(CircleCenter.sp, width=CircleRadius, quadsegs=15)
-      circle.list[[i]] <- data.frame(ID=my.ID, CentroidX=my.CentroidX, CentroidY=my.CentroidY, CentroidZ=my.CentroidZ, TreeH=my.TreeH,
-                                     CrownBaseH=my.CrownBaseH, CrownLength=my.CrownLength, NPoints=my.NPoints,
-                                     CircleCenterX=CircleCenterX, CircleCenterY=CircleCenterY, Radius=CircleRadius)
+      ps.list[[i]] <- rgeos::gBuffer(
+        CircleCenter.sp,
+        width=CircleRadius,
+        quadsegs=15
+      )
+      circle.list[[i]] <- data.frame(
+        ID=my.ID,
+        CentroidX=my.CentroidX,
+        CentroidY=my.CentroidY,
+        CentroidZ=my.CentroidZ,
+        TreeH=my.TreeH,
+        CrownBaseH=my.CrownBaseH,
+        CrownLength=my.CrownLength,
+        NPoints=my.NPoints,
+        CircleCenterX=CircleCenterX,
+        CircleCenterY=CircleCenterY,
+        Radius=CircleRadius
+      )
     }
     # Bind all list elements together in one data.table
     circle.dt <- do.call(raster::bind, circle.list)

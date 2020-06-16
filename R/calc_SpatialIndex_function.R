@@ -1,7 +1,7 @@
 #' Calculate spatial indices for points in 2D space
 #'
-#' Function that returns spatial indices (plot numbers) for given coordinate pairs.
-#' E.g. for hectares res = 100 m
+#' Function that returns spatial indices (plot numbers) for given coordinate
+#'   pairs. E.g. for hectares res = 100 m
 #' @param xcor X-coordinate of the point
 #' @param ycor Y-coordinate of the point
 #' @param res side length of one spatial subunit
@@ -9,12 +9,20 @@
 #' @param miny minimum Y-coordinate
 #' @param maxx maximum X-coordinate
 #' @param maxy maximum Y-coordinate
-#' @param exclude.maxx boolean to set whether the given maxx should be excluded or included in the indexing
+#' @param exclude.maxx boolean to set whether the given maxx should be excluded
+#'   or included in the indexing
 #' @return spatial index for the input point
 #' @keywords spatial index plot number
 #' @author Nikolai Knapp, nikolai.knapp@ufz.de
 
-calc_SpatialIndex <- function(xcor, ycor, res=1, minx=NA, miny=NA, maxx=NA, maxy=NA, exclude.maxx=T){
+calc_SpatialIndex <- function(xcor,
+                              ycor,
+                              res=1,
+                              minx=NA,
+                              miny=NA,
+                              maxx=NA,
+                              maxy=NA,
+                              exclude.maxx=T){
   # If no coordinate limits are given use the extrema of the data as limits
   if(is.na(minx)){
     minx <- floor(min(xcor, na.rm=T))
